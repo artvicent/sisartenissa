@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Charcutería</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Pantalla de Login -->
+        <div id="loginScreen" class="login-screen">
+            <div class="login-container">
+                <div class="company-logo">
+                    <img id="companyLogoImg" src="/placeholder.svg" alt="Logo" style="display: none;">
+                    <svg id="companyLogoSvg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+                        <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                </div>
+                <h1 id="companyName">Mi Charcutería</h1>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Usuario:</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group password-toggle">
+                        <label for="password">Contraseña:</label>
+                        <input type="password" id="password" required>
+                        <button type="button" id="togglePassword">👁️</button>
+                    </div>
+                    <div id="loginError" class="login-error"></div>
+                    <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Pantalla del Dashboard -->
+        <div id="dashboardScreen" class="dashboard-screen">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <div class="nav-logo">
+                        <img id="navLogoImg" src="/placeholder.svg" alt="Logo" style="display: none;">
+                        <svg id="navLogoSvg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <h2 id="navCompanyName">Mi Charcutería</h2>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <span>👤</span>
+                        <span id="currentUser">Usuario</span>
+                    </div>
+                    <button id="logoutBtn" class="btn btn-danger">Cerrar Sesión</button>
+                </div>
+            </header>
+
+            <!-- Contenido principal -->
+            <div class="dashboard-content">
+                <!-- Sidebar de navegación -->
+                <aside class="sidebar">
+                    <div class="sidebar-header">
+                        <h3>Menú Principal</h3>
+                    </div>
+                    <nav id="navMenu" class="nav-menu">
+                        <!-- Los elementos del menú se generan dinámicamente -->
+                    </nav>
+                </aside>
+
+                <!-- Área de contenido -->
+                <main id="contentArea" class="content-area">
+                    <!-- El contenido se carga dinámicamente aquí -->
+                </main>
+            </div>
+        </div>
+
+        <!-- Modal Container -->
+        <div id="modalContainer" class="modal-container">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="modalTitle" class="modal-title">Título del Modal</h3>
+                    <button id="modalClose" class="modal-close">&times;</button>
+                </div>
+                <div id="modalBody" class="modal-body">
+                    <!-- Contenido del modal -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="security.js"></script>
+    <script src="script.js"></script>
+    <p>Version 1.0.0</p>
+</body>
+</html>
