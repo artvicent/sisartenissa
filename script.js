@@ -129,6 +129,19 @@ class UserManager {
     this.currentUser = null
     this.sessionToken = null
   }
+  loadUsers() {
+  const raw = JSON.parse(localStorage.getItem("systemUsers")) || [];
+  return raw.map((u) => new User(
+    u.username,
+    u.password,
+    u.role,
+    new Date(u.lastLogin),
+    new Date(u.passwordLastChanged),
+    u.passwordExpiryDays,
+    u.locked,
+    u.failedLoginAttempts
+  ));
+}
 
   saveUsers() {
     const usersData = this.users.map((user) => ({
@@ -144,7 +157,7 @@ class UserManager {
     localStorage.setItem("systemUsers", JSON.stringify(usersData))
   }
 
-  addUser(username, password, role) {
+  addUser(username, password, role= "usuario") {
     if (this.users.find((u) => u.username === username)) {
       return { success: false, message: "El usuario ya existe" }
     }
@@ -153,21 +166,25 @@ class UserManager {
     this.saveUsers()
     return { success: true, message: "Usuario agregado exitosamente" }
   }
+  deleteUser(username) {
+    const index = this.users.findIndex((u) => u.username === username);
+    if (index === -1) {
+    return { success: false, message: "Usuario no encontrado" };
+  }
 
-  changePassword(username, currentPassword, newPassword) {
+    this.users.splice(index, 1);
+    this.saveUsers();
+
+    return { success: true, message: `Usuario "${username}" eliminado` };
+  }
+  
+
+  changePassword(username, newPassword) {
     const user = this.users.find((u) => u.username === username)
     if (!user) {
       return { success: false, message: "Usuario no encontrado" }
     }
-    if (user.password !== currentPassword) {
-      this.securityManager.logSecurityEvent({
-        type: "PASSWORD_CHANGE_FAILED",
-        username: username,
-        timestamp: new Date().toISOString(),
-        details: "Intento de cambio de contraseña con contraseña actual incorrecta",
-      })
-      return { success: false, message: "Contraseña actual incorrecta" }
-    }
+    
     if (newPassword.length > 12) {
       return { success: false, message: "La contraseña no debe exceder los 12 caracteres" }
     }
@@ -536,7 +553,7 @@ class CharcuteriaSystem {
       }
     }
   }
-
+      
   handleLogout() {
     this.userManager.logout()
     this.showLogin()
@@ -1343,7 +1360,7 @@ class CharcuteriaSystem {
       if (currentInvoiceNumber !== this.invoiceManager.getCurrentNumber()) {
         this.invoiceManager.resetCounter(currentInvoiceNumber)
       }
-
+      
       localStorage.setItem("taxRate", taxRate.toString())
       localStorage.setItem("profitMargin", margin.toString())
 
@@ -1388,7 +1405,7 @@ class CharcuteriaSystem {
               ${unlockButton}
               <button class="btn btn-small btn-secondary change-password-btn" data-username="${user.username}">Cambiar Contraseña</button>
               <button class="btn btn-small btn-primary set-expiry-btn" data-username="${user.username}">Política</button>
-              ${user.username !== "admin" ? '<button class="btn btn-small btn-danger">Eliminar</button>' : ""}
+              ${user.username !== "admin" ? `<button class="btn btn-small btn-danger delete-user-btn" data-username="${user.username}">Eliminar</button>` : ""}
             </td>
           </tr>
         `
@@ -1504,10 +1521,6 @@ class CharcuteriaSystem {
       "Cambiar Contraseña",
       `<form id="changePasswordForm">
         <div class="form-group">
-        <label for="currentPassword">Contraseña Actual:</label>
-          <input type="password" id="currentPassword" required>  
-        </div>
-        <div class="form-group">
           <label for="newPassword">Nueva Contraseña:</label>
           <input type="password" id="newPassword" maxlength="12" required>
           <div class="password-requirements" style="margin-top: 10px; font-size: 0.8rem;">
@@ -1551,7 +1564,7 @@ class CharcuteriaSystem {
     document.getElementById("changePasswordForm").addEventListener("submit", (e) => {
       e.preventDefault()
       const username = document.getElementById("usernameInput").value
-      const currentPassword = document.getElementById("currentPassword").value
+      
       const newPassword = document.getElementById("newPassword").value
       const confirmPassword = document.getElementById("confirmPassword").value
 
@@ -1560,7 +1573,7 @@ class CharcuteriaSystem {
         return
       }
 
-      const result = this.userManager.changePassword(username, currentPassword, newPassword)
+      const result = this.userManager.changePassword(username, newPassword)
       if (result.success) {
         alert(result.message)
         this.closeModal()
@@ -2928,3 +2941,33 @@ document.addEventListener("DOMContentLoaded", () => {
   system = new CharcuteriaSystem()
   window.system = system // Hacer disponible globalmente para los event handlers
 })
+const userManager = new UserManager(); // Instancia global (si no existe, crea una)
+
+// Escucha los clics en botones de eliminar
+document.addEventListener("click", function (e) {
+  if (e.target.classList.contains("delete-user-btn")) {
+    const username = e.target.getAttribute("data-username");
+    const result = userManager.deleteUser(username);
+    alert(result.message);
+    if (result.success) {
+      renderUserList(); // Si tienes esta función, la llamas aquí
+    }
+    function renderUserList() {
+  const container = document.getElementById("userList");
+  container.innerHTML = "";
+
+  userManager.users.forEach((user) => {
+    const row = document.createElement("div");
+    row.classList.add("d-flex", "justify-content-between", "mb-2");
+    row.innerHTML = `
+      <span>${user.username}</span>
+      ${user.username !== "admin" ? `
+        <button class="btn btn-small btn-danger delete-user-btn" data-username="${user.username}">Eliminar</button>
+      ` : ""}
+    `;
+    container.appendChild(row);
+  });
+}
+
+  }
+});
