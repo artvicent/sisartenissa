@@ -157,27 +157,34 @@ class UserManager {
     localStorage.setItem("systemUsers", JSON.stringify(usersData))
   }
 
-  addUser(username, password, role= "usuario") {
-    if (this.users.find((u) => u.username === username)) {
-      return { success: false, message: "El usuario ya existe" }
-    }
-    const newUser = new User(username, password, role)
-    this.users.push(newUser)
-    this.saveUsers()
-    return { success: true, message: "Usuario agregado exitosamente" }
+  addUser(username, password, role = "usuario") {
+  if (this.users.find((u) => u.username === username)) {
+    return { success: false, message: "El usuario ya existe" };
+  }
+
+  const newUser = new User(username, password, role);
+  this.users.push(newUser);
+  this.saveUsers();
+
+  // 🔄 Refrescamos desde localStorage por consistencia
+  this.users = this.loadUsers();
+
+  return { success: true, message: "Usuario agregado exitosamente" };
   }
   deleteUser(username) {
-    const index = this.users.findIndex((u) => u.username === username);
-    if (index === -1) {
+  const index = this.users.findIndex((u) => u.username === username);
+  if (index === -1) {
     return { success: false, message: "Usuario no encontrado" };
   }
 
-    this.users.splice(index, 1);
-    this.saveUsers();
+  this.users.splice(index, 1);
+  this.saveUsers();
 
-    return { success: true, message: `Usuario "${username}" eliminado` };
+  // 🔄 Refrescamos desde localStorage
+  this.users = this.loadUsers();
+
+  return { success: true, message: `Usuario "${username}" eliminado correctamente.` };
   }
-  
 
   changePassword(username, newPassword) {
     const user = this.users.find((u) => u.username === username)
@@ -1609,7 +1616,7 @@ class CharcuteriaSystem {
           <label for="newUserRole">Rol:</label>
           <select id="newUserRole" required>
             <option value="">Seleccionar rol</option>
-            <option value="admin">Administrador</option>
+            <option value="admin">Admin</option>
             <option value="administrador">Administrador</option>
             <option value="vendedor">Vendedor</option>
           </select>
@@ -2950,24 +2957,21 @@ document.addEventListener("click", function (e) {
     const result = userManager.deleteUser(username);
     alert(result.message);
     if (result.success) {
-      renderUserList(); // Si tienes esta función, la llamas aquí
+      renderUserList();
     }
-    function renderUserList() {
-  const container = document.getElementById("userList");
-  container.innerHTML = "";
-
-  userManager.users.forEach((user) => {
-    const row = document.createElement("div");
-    row.classList.add("d-flex", "justify-content-between", "mb-2");
-    row.innerHTML = `
-      <span>${user.username}</span>
-      ${user.username !== "admin" ? `
-        <button class="btn btn-small btn-danger delete-user-btn" data-username="${user.username}">Eliminar</button>
-      ` : ""}
-    `;
-    container.appendChild(row);
-  });
-}
-
   }
+
+  document.getElementById("addUserForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  const username = document.getElementById("newUsername").value;
+  const password = document.getElementById("newPassword").value;
+  const role = document.getElementById("newRole").value;
+
+  const result = userManager.addUser(username, password, role);
+  alert(result.message);
+  if (result.success) {
+    renderUserList();
+    e.target.reset();
+    }
+  });
 });
